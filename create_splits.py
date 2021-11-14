@@ -25,8 +25,8 @@ def split(source, destination):
     source_path = Path(source)
     training_validation_path = source_path / "training_and_validation"
     test_path = source_path / "test"
-    train_test_records = [record for record in training_validation_path.glob("*.tfrecord")]
-    test_records = [record for record in test_path.glob("*.tfrecord")]
+    train_test_records = [record.resolve() for record in training_validation_path.glob("*.tfrecord")]
+    test_records = [record.resolve() for record in test_path.glob("*.tfrecord")]
 
     random.shuffle(train_test_records)
     split_index = int(len(train_test_records) * training_validation_data_fraction_for_traing + 0.5)
