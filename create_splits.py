@@ -20,18 +20,23 @@ def split(source, destination):
         - destination [str]: destination data directory, to contain 3 sub folders:
             train / val / test
     """
-    training_validation_data_fraction_for_traing = 0.8
+    fraction_for_validation = 0.15
+    fraction_for_testing = 0.05
 
     source_path = Path(source)
-    training_validation_path = source_path / "training_and_validation"
-    test_path = source_path / "test"
-    train_test_records = [record.resolve() for record in training_validation_path.glob("*.tfrecord")]
-    test_records = [record.resolve() for record in test_path.glob("*.tfrecord")]
+    all_records = [record.resolve() for record in source_path.glob("*.tfrecord")]
 
-    random.shuffle(train_test_records)
-    split_index = int(len(train_test_records) * training_validation_data_fraction_for_traing + 0.5)
-    train_records = train_test_records[:split_index]
-    validation_records = train_test_records[split_index:]
+    num_validation = int(len(all_records) * fraction_for_validation + 0.5)
+    num_testing = int(len(all_records) * fraction_for_testing + 0.5)
+    num_training = len(all_records) - num_validation - num_testing
+    
+    print("Using", num_training, "records for training,", num_validation, "records for validation, "
+            "and", num_testing, "records for testing.")
+
+    random.shuffle(all_records)
+    train_records = all_records[:num_training]
+    validation_records = all_records[num_training:num_training + num_validation]
+    testing_records = all_records[num_training + num_validation:]
 
     destination_path = Path(destination)
     dest_train_path = destination_path / "train"
@@ -48,7 +53,7 @@ def split(source, destination):
     for record in validation_records:
         os.symlink(record, dest_val_path / record.name)
 
-    for record in test_records:
+    for record in testing_records:
         os.symlink(record, dest_test_path / record.name)
 
 
