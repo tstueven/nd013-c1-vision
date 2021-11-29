@@ -120,7 +120,7 @@ def process_tfr(path, data_dir):
         # we are only saving every 10 frames to reduce the number of similar
         # images. Remove this line if you have enough space to work with full
         # temporal resolution data.
-        if idx % 10 == 0:
+        # if idx % 10 == 0:
             frame = open_dataset.Frame()
             frame.ParseFromString(bytearray(data.numpy()))
             encoded_jpeg, annotations = parse_frame(frame)
