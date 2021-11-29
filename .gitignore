@@ -2,5 +2,6 @@
 *.ipynb_checkpoints/
 data
 .idea
-experiments/pretrained_model/
-experiments/reference
+experiments
+pretrained_model/
+
