@@ -59,3 +59,9 @@ When training starts, also already get the evaluation going as not all checkpoin
 ```bash
  CUDA_VISIBLE_DEVICES="" python experiments/model_main_tf2.py --model_dir=experiments/reference/ --pipeline_config_path=experiments/reference/pipeline_new.config --checkpoint_dir=experiments/reference/
 ```
+
+## Dataset
+### Cross validation
+In order to validate a model and evaluate training progress, data unseen in the training process are needed. For this reason one has to split the dataset in training and validation as well as test data. Validation data serve e.g. for the purpose of registering overfitting and can be used as a benchmark in preventing it as well as training evaluation in general whereas testdata are not to be used at all until everything is done and ready for a final test.
+
+The `create_splits.py` script splits the data such that 80% are used for training, 15% for validation, and 5% for testing which seems to be pretty common. One thing to remark about the data here is that each of the tfrecord files, along which the splits run, contains around 200 images of a similar scene, ususally the same street. I thought about if those should be mixed and distributed among training, validation, and test sets, but decided against since then the training data would contain images too similar to teh testing and validation images which is not wanted.
