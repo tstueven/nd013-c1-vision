@@ -1,0 +1,12 @@
+# Object Detection in an Urban Environment
+
+## Project overview
+This section contains a brief description of the project and what we are trying to achieve. Why is object detection such an important component of self driving car systems?
+
+As a driver of a car (or any other vehicle) one needs to be on constant alert, watch and evaluate the surroundings in order to avoid accidents. Different agents show different behaviours, i.e. a car is faster as a cyclist as a pedestrian, whereas the latter might change direction quickly or appear in between cars. All this and more needs to be taken into account when "calculating" a path to ones destination (or at least to the next street corner). The first step in any of this is to recognize what agents at which direction and distance need to be taken into account.
+
+All this is true as well for a self driving car which is in a sense its own driver. It must be able to understand its surroundings, spot other vehicles, cyclists, or pedetrians and act accordingly. The first step -- which we are trying to archive here -- is to localize other objects on the street and classify whether they are a vehicle, cyclist, or pedestrian. This image segmentation and classification task is nowadays done best by a neural network.
+
+To train a complex model such as one to segment an image and classify objects, one luckily does not have to start from scratch or with lower level library APIs such as Keras, but can instead use the [TensorFlow Object Detection API](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/index.html) which comes with a whole [zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md) of prebuilt and pretrained models. What is also needed is a lot of training data which luckily gets provided for free by Waymo in the form of the [Waymo Open Dataset](https://waymo.com/open/).
+
+In the following we are going to describe how to set up an environment in which the code can be run. Then there is a brief part about why and how the dataset is split for cross validation. We then take a look at the data that is given to see different examples of inputs and also how the classes are distributed. In the end, of course, we look at training and results.
