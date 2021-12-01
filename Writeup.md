@@ -25,7 +25,7 @@ sudo apt install nvtop
 
 ### Data
 #### Acquisition
-The data can be downloaded from a Google Cloud Storage bucket. They are quite large and contain a lot of data (such as LIDAR) which are not relevant for the task here. Also, the format of the data is not exactly matching the requirements for inputs to the Object Detection API. The `download_process` script takes care of all this. It downloads and transforms the data for our purposes here. It can be run as follows:
+The data can be downloaded from a [Google Cloud Storage bucket](https://console.cloud.google.com/storage/browser/waymo_open_dataset_v_1_2_0_individual_files). They are quite large and contain a lot of data (such as LIDAR) which are not relevant for the task here. Also, the format of the data is not exactly matching the requirements for inputs to the Object Detection API. The `download_process` script takes care of all this. It downloads and transforms the data for our purposes here. It can be run as follows:
 ```bash
 python download_process.py --data_dir {processed_file_location} --size {number of files you want to download}
 ```
@@ -65,3 +65,22 @@ When training starts, also already get the evaluation going as not all checkpoin
 In order to validate a model and evaluate training progress, data unseen in the training process are needed. For this reason one has to split the dataset in training and validation as well as test data. Validation data serve e.g. for the purpose of registering overfitting and can be used as a benchmark in preventing it as well as training evaluation in general whereas testdata are not to be used at all until everything is done and ready for a final test.
 
 The `create_splits.py` script splits the data such that 80% are used for training, 15% for validation, and 5% for testing which seems to be pretty common. One thing to remark about the data here is that each of the tfrecord files, along which the splits run, contains around 200 images of a similar scene, ususally the same street. I thought about if those should be mixed and distributed among training, validation, and test sets, but decided against since then the training data would contain images too similar to teh testing and validation images which is not wanted.
+
+
+### Dataset analysis
+[explore_display]: ./writeup_images/explore_display.png "Exploration"
+[training_data_dist]: ./writeup_images/training_data_dist.png "Training Data Distribution"
+
+This section contains a quantitative and qualitative description of the dataset.
+
+There are 15862 images in the training dataset and 2948 in the validation dataset, each with a resolution of 640 x 640. A random sample of ten is dispalyed below.
+
+There are images of cities (1, 0) and suburbs (0,1), at daytime, nighttime (1, 1), and dusk / dawn (2, 1). There are images with many parked or driving cars, a few with pedestrians, and very few with cyclists (0, 1), (1, 1).
+
+We also see taht partly and also many almost completely occluded objects are marked, e.g. pedestrains in (0, 1) or cars in (1, 0). Many of these objects are hardly spotable or distinguishable for the human eye and thus we do not expect a too perfect natwork performance here.
+
+![alt text][explore_display]
+
+The plot below shows the distribution of the different object classes. As can be seen, the majority (282049, 73.69%) of the objects are vehicles and there is also a still a considerable amount of pedestrains (97990, 25.60%). Cyclists, though, there are only few (2725, 0.71%). This is not so surpring as these data were taken mostly in large American cities, but might be a big problem for using the data in an area where cyclists are more common. Luckily, there are also some cyclists (744, 0.90%) in the validation data. 
+
+![alt text][training_data_dist]
