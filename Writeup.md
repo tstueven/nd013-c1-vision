@@ -195,3 +195,21 @@ Data for precision and recall of the validation data is dispalyed below.
 ![alt text][recall]
 
 We find that from both metrics that the detection of large objects works quite well whereas small objects are problematic. One thing to try here migt be to work higher resolution images. But as the larger onjects are the closer ones, this is also the more important metric for us and all together it seems to be solid overall result.
+
+#### Video
+At last, beeing more or less happy with the modle for now, it is apllied on test data to see how it performs there. 
+
+In a first step we export the model:
+```bash
+python experiments/exporter_main_v2.py --input_type image_tensor --pipeline_config_path experiments/batch10_augmented/pipeline_new.config --trained_checkpoint_dir experiments/batch10_augmented --output_directory experiments/batch10_augmented/exported/
+```
+
+and then use the exported model and one of the rest records to make a video:
+```bash
+python inference_video.py --labelmap_path label_map.pbtxt --model_path experiments/batch10_augmented/exported/saved_model --tf_record_path data/test/segment-10750135302241325253_180_000_200_000_with_camera_labels.tfrecord --config_path experiments/batch10_augmented/pipeline_new.config --output_path writeup_images/animation.avi
+```
+The result can be seen below.
+
+![](writeup_images/animation.gif)
+
+The performance is rather mediocre. The cars that are nearing are classified correctly the whole time as soon as they are close and navigation through traffic seems possible. On the other hand, e.g. the pedestrian walking along the wall on the left side is not registered at all and might be in danger if he wanted to cross the street. Furtehr improvements are definitely needed.
