@@ -1,7 +1,7 @@
 # Object Detection in an Urban Environment
 
 ## Project overview
-This section contains a brief description of the project and what we are trying to achieve. Why is object detection such an important component of self driving car systems?
+_This section contains a brief description of the project and what we are trying to achieve. Why is object detection such an important component of self driving car systems?_
 
 As a driver of a car (or any other vehicle) one needs to be on constant alert, watch and evaluate the surroundings in order to avoid accidents. Different agents show different behaviours, i.e. a car is faster as a cyclist as a pedestrian, whereas the latter might change direction quickly or appear in between cars. All this and more needs to be taken into account when "calculating" a path to ones destination (or at least to the next street corner). The first step in any of this is to recognize what agents at which direction and distance need to be taken into account.
 
@@ -71,7 +71,7 @@ The `create_splits.py` script splits the data such that 80% are used for trainin
 [explore_display]: ./writeup_images/explore_display.png "Exploration"
 [training_data_dist]: ./writeup_images/training_data_dist.png "Training Data Distribution"
 
-This section contains a quantitative and qualitative description of the dataset.
+_This section contains a quantitative and qualitative description of the dataset._
 
 There are 15862 images in the training dataset and 2948 in the validation dataset, each with a resolution of 640 x 640. A random sample of ten is dispalyed below.
 
@@ -84,3 +84,114 @@ We also see taht partly and also many almost completely occluded objects are mar
 The plot below shows the distribution of the different object classes. As can be seen, the majority (282049, 73.69%) of the objects are vehicles and there is also a still a considerable amount of pedestrains (97990, 25.60%). Cyclists, though, there are only few (2725, 0.71%). This is not so surpring as these data were taken mostly in large American cities, but might be a big problem for using the data in an area where cyclists are more common. Luckily, there are also some cyclists (744, 0.90%) in the validation data. 
 
 ![alt text][training_data_dist]
+
+
+## Training
+### Reference experiment
+[reference_training]: ./writeup_images/reference_training.png "Reference Training"
+[batch_10_training]: ./writeup_images/batch10_training.png "Batchsize 10"
+
+
+_This section details the results of the reference experiment._
+
+As a reference the original pipeline file was used as the starting point. This then was modified via the script described in section [Pipeline Config](#pipeline-config). The pipline can be found in `pipeline_files/pipeline_reference.config`. The result was awful.
+
+![alt text][reference_training]
+
+The localization loss did on average not change too much, but the classification loss, after staying relatively low for a while, exploded and never recovered.
+
+### Improve on the reference
+_This section should highlights the different strategies adopted to improve your model._
+
+#### Batch size
+The first thing I did to improve the results was to choose a larger batch size as 2 seems really small to me. My first intuition was to use the model's default which is 64. Unfortunately, this was too much for my GPU memory. What was still within limits is a natch size of 10 and that's what I usen then. The pipline can be found in` pipeline_files/pipeline_batch10.config`.
+
+![alt text][batch_10_training]
+
+As can be seen from teh plots above, the results improved tremendously.
+
+#### Model choice
+The next thing I tried was a different model. The [model zoo website](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md) provides helpful information about model performance. From these data i decided the EfficientDet D1 640x640 looks promising as it is build for the same input size and leads to better results without a big loss in performance.
+
+Unfortunately, despite some effort, I did not manage to get it running. Training would just stop before it really started and I could not find the reason for this.
+
+#### Droput
+What I also tested was if the performance could be improved by dropout. The loss in the plot above seemed to have reached a plateau and validation loss is a lot worse then training loss. At least the former might hint to some overfitting. The [box predictor has an option for dropout](https://github.com/tensorflow/models/blob/master/research/object_detection/protos/box_predictor.proto) which was used.
+
+The expted improvement did not happen. Setting this option did not have any effect at all on training.
+
+### Augmentations
+[none]: ./writeup_images/augmentations/no_augmentation.png "None"
+[gray]: ./writeup_images/augmentations/gray.png "Grayscale"
+[brightness_bright]: ./writeup_images/augmentations/brightness_bright.png "Brightness Bright"
+[brightness_dark]: ./writeup_images/augmentations/brightness_dark.png "Brightness Dark"
+[contrast_high]: ./writeup_images/augmentations/contrast_high.png "Hight Contrast"
+[saturation_little]: ./writeup_images/augmentations/saturation_little.png "Little Saturation"
+[saturation_lot]: ./writeup_images/augmentations/saturation_lot.png "Lot Saturation"
+[hue]: ./writeup_images/augmentations/hue.png "Hue"
+[black_patches]: ./writeup_images/augmentations/black_patches.png "Black Patches"
+
+One more method to help improve reults are augmentations. Here the object detection API provides a lot some of which are going to be discussed below.
+
+Two, a horizontal flip and a random crop were already used in the reference model  and kept in everything after that since they seem to amke a lot of sense.
+
+A vertical flip was not included since there is no normal road scenario in which the car would be upside down. Scaling was not used either as this, in one direction, is already a subset of cropping, in he other padding would be needed which brings its own complications.
+
+#### No augmentation
+Below one representative image without any augmentations to compare against.
+
+![alt text][none]
+
+#### Gray
+Grayscale could simulate rain or fog.
+
+![alt text][gray]
+
+#### Brightness
+Changing the brightness could simulate very sunny days (probably with the sun coming in from the front) as well as darker times. i.e. morning or evening.
+
+![alt text][brightness_bright]
+![alt text][brightness_dark]
+
+#### Contrast
+A change in contrast could supposedly make edge detection in the network more flexible. Below is an example with a higher contrast.
+
+![alt text][contrast_high]
+
+#### Saturation
+Going down with the saturation leads towards grayscale but is not as extreme. Going up leads to stronger colours, sometimes too strong as teh example below. Staying in the default limits seems to do just tine though.
+
+![alt text][saturation_little]
+![alt text][saturation_lot]
+
+#### Hue
+Changes in hue quickly lead to unnatural transformations (below). But when kept small, i.e. within defaults, the variations are modest and could be useful.
+
+![alt text][hue]
+
+### Black patches
+Random black patches were used as well as a means to simulate object occlusions. The default seemed to etreme though and the the overall size, number, and probability was lowered.
+
+Below is one typical example containing all augmentations.
+
+![alt text][all]
+
+### Final results
+[final_training_results]: ./writeup_images/augmented_training.png "Final training results"
+[precision]: ./writeup_images/precision.png "Precision"
+[recall]: ./writeup_images/recall.png "recall"
+
+
+
+The final pipeline for training with augmentations can be found in `pipeline_files/pipeline_augmented.config`. The trainign results are below.
+
+![alt text][final_training_results]
+
+The results are only marhinally better than without the additional augmentations. The main difference is that saturation does not seem to set in as early and training over more epochs leads to some benefits.
+
+Data for precision and recall of the validation data is dispalyed below.
+
+![alt text][precision]
+![alt text][recall]
+
+We find that from both metrics that the detection of large objects works quite well whereas small objects are problematic. One thing to try here migt be to work higher resolution images. But as the larger onjects are the closer ones, this is also the more important metric for us and all together it seems to be solid overall result.
